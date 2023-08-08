@@ -4,13 +4,15 @@ import { BehaviorSubject, Observable, ObservableInput, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '@environments/environment';
 import { User } from '@app/_models';
+import { Router, ActivatedRoute } from '@angular/router';
+
 @Injectable({ providedIn: 'root' })
 export class AuthenticationService {
     private currentUserSubject: BehaviorSubject<User>;
     public currentUser: Observable<User>;
     authToken: any;
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private route: ActivatedRoute,) {
         this.currentUserSubject = new BehaviorSubject<User>(JSON.parse(localStorage.getItem('currentUser')));
         this.currentUser = this.currentUserSubject.asObservable();
     }
@@ -51,6 +53,8 @@ export class AuthenticationService {
         .subscribe({
           next: data => {
               //this.postId = data.id;
+              const returnUrl = this.route.snapshot.queryParams['returnUrl'] || 'login';
+            //         this.router.navigate([returnUrl]);
           },
           error: err => {
               //this.errorMessage = error.message;

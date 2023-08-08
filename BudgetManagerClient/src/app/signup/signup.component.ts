@@ -52,7 +52,7 @@ export class SignupComponent implements OnInit {
     }
 
     this.loading = true;
-    this.authenticationService.register(this.f.firstName.value, this.f.lastName.value, this.f.email.value, this.f.password.value, this.f.confirmPassword.value)
+    this.authenticationService.register(this.f.firstName.value, this.f.lastName.value, this.f.email.value, this.f.password.value, this.f.confirmPassword.value);
             //.subscribe({
             //    next: () => {
             //         // get return url from route parameters or default to '/'
@@ -65,7 +65,9 @@ export class SignupComponent implements OnInit {
             //       this.loading = false;
             //     }
             // });
-    
+            const returnUrl = this.route.snapshot.queryParams['returnUrl'] || 'login';
+            this.router.navigate([returnUrl]);
+            this.loading = false;
   }
   login(){
     const returnUrl = this.route.snapshot.queryParams['returnUrl'] || 'login';

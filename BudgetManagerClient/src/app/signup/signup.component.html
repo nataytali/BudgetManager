@@ -53,11 +53,14 @@
             </form>
         </div>
     </div>
-    <div class="sign-up-btn" style="
-    margin: auto;
-    width: 30%;
-    padding: 20px;">
-        <button (click)="login()" type="button" class="btn btn-outline-primary">
+    <div class="sign-up-btn" style="  height: 60px;
+    position: relative;">
+        <button (click)="login()" type="button" class="btn btn-outline-primary" style="margin: 0;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        -ms-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);">
             Login
         </button>
     </div>
