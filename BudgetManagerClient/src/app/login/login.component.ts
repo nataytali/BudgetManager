@@ -26,7 +26,7 @@ export class LoginComponent implements OnInit {
 
     ngOnInit() {
         this.loginForm = this.formBuilder.group({
-            email: ['', Validators.required],
+            email: ['', [Validators.required, Validators.email]],
             password: ['', Validators.required]
         });
     }
@@ -34,7 +34,7 @@ export class LoginComponent implements OnInit {
     // convenience getter for easy access to form fields
     get f() { return this.loginForm.controls; }
 
-    onSubmit() {
+    async onSubmit() {
         this.submitted = true;
 
         // stop here if form is invalid
@@ -43,19 +43,19 @@ export class LoginComponent implements OnInit {
         }
 
         this.loading = true;
-        this.authenticationService.login(this.f.email.value, this.f.password.value)
-            .pipe(first())
-            .subscribe({
-                next: () => {
-                    // get return url from route parameters or default to '/'
-                    const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
-                    this.router.navigate([returnUrl]);
-                },
-                error: error => {
-                    this.error = error;
-                    this.loading = false;
-                }
-            });
+        
+        try {
+            await this.authenticationService.login(this.f.email.value, this.f.password.value);
+            
+            this.loading = false;
+            const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '';
+            this.router.navigate([returnUrl]);
+            
+          } 
+          catch (error) {
+            this.loading = false;
+            this.error = `Server error: ${error.message}`
+          }
     }
 
     signUp(){

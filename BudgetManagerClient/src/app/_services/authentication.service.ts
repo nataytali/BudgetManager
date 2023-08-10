@@ -12,7 +12,7 @@ export class AuthenticationService {
     public currentUser: Observable<User>;
     authToken: any;
 
-    constructor(private http: HttpClient, private route: ActivatedRoute,) {
+    constructor(private http: HttpClient) {
         this.currentUserSubject = new BehaviorSubject<User>(JSON.parse(localStorage.getItem('currentUser')));
         this.currentUser = this.currentUserSubject.asObservable();
     }
@@ -21,18 +21,42 @@ export class AuthenticationService {
         return this.currentUserSubject.value;
     }
 
-    login(email: string, password: string) {
-        return this.http.post<any>(`${environment.apiUrl}/api/auth/login`, { email, password }, {
-            headers: new HttpHeaders({
-              "Content-Type": "application/json"
-            })
+    async login(email: string, password: string) {
+        try
+        {
+          return await fetch(`${environment.apiUrl}/api/auth/login`, {
+            method: "POST",
+            headers: {
+              Accept: "application/json, text/plain, */*",
+              "Content-Type": "application/json",
+            },
+           body: JSON.stringify({
+            "email": email, 
+            "password": password
+          }), 
           })
-            .pipe(map(user => {
-                // store user details and jwt token in local storage to keep user logged in between page refreshes
-                localStorage.setItem('currentUser', JSON.stringify(user));
-                this.currentUserSubject.next(user);
-                return user;
-            }));
+          .then((response) => response.json())
+          .then((user) => {
+            console.log(user);
+            localStorage.setItem('currentUser', JSON.stringify(user));
+                 this.currentUserSubject.next(user);
+                 return user;
+            if (user.error) {
+              alert("Error Password or Username"); 
+            } else {
+              console.log("Success")
+            }
+          })
+          .catch((err) => {
+            console.log(`Error: ${err}`);
+            throw new Error(err);
+          });
+
+        }
+        catch(error)
+        {
+          throw new Error(error)
+        }
     }
 
     logout() {
@@ -43,33 +67,28 @@ export class AuthenticationService {
         sessionStorage.clear();
     }
 
-    register(firstName: string, lastname: string, email: string, password: string, confirmPassword: string)
+    async register(firstName: string, lastname: string, email: string, password: string, confirmPassword: string)
     {
-        return this.http.post<any>(`${environment.apiUrl}/api/account/register`, { firstName, lastname, email, password, confirmPassword }, {
-            headers: new HttpHeaders({
-              "Content-Type": "application/json"
-            })
-          })
-        .subscribe({
-          next: data => {
-              //this.postId = data.id;
-              const returnUrl = this.route.snapshot.queryParams['returnUrl'] || 'login';
-            //         this.router.navigate([returnUrl]);
-          },
-          error: err => {
-              //this.errorMessage = error.message;
-              console.log('There was an error!' + err);
-          }  });
-    }
-    private handleError(error: string) {
-        if (error['status'] === 0) {
-          console.error('An error occurred:', error);
-        } else {
-          console.error(
-            `Backend returned error: ${error} `, error);
+        try
+        {
+          const response = await fetch(`${environment.apiUrl}/api/account/register`, {
+            method: "POST", 
+            mode: "cors", 
+            cache: "no-cache", 
+            credentials: "same-origin", 
+            headers: {
+              "Content-Type": "application/json",
+            },
+           body: JSON.stringify({ "firstName":firstName, "lastName": lastname,  "email": email, "password": password, "confirmPassword": confirmPassword }), // body data type must match "Content-Type" header
+          });
+          console.log("response body: " + await response.status);
+          return await response; 
         }
-        console.log(typeof error);
-        return throwError(() => new Error(error));
-      }
-    
+        catch(error)
+        {
+          throw new Error(error)
+        }
+        
+    }
+
 }

@@ -34,7 +34,7 @@ export class SignupComponent implements OnInit {
       firstName:['', Validators.required],
       lastName:[''],
       email: ['', [Validators.email, Validators.required]],
-      password: ['', [Validators.minLength(3), Validators.required]],
+      password: ['', [Validators.minLength(6), Validators.required]],
       confirmPassword: ['', [Validators.required]]
   },
   {
@@ -43,32 +43,48 @@ export class SignupComponent implements OnInit {
   }
   get f() { return this.signUpForm.controls; }
 
-  onSubmit() {
+  async onSubmit() {
     this.submitted = true;
 
-    // stop here if form is invalid
     if (this.signUpForm.invalid) {
         return;
     }
 
     this.loading = true;
-    this.authenticationService.register(this.f.firstName.value, this.f.lastName.value, this.f.email.value, this.f.password.value, this.f.confirmPassword.value);
-            //.subscribe({
-            //    next: () => {
-            //         // get return url from route parameters or default to '/'
-            //         const returnUrl = this.route.snapshot.queryParams['returnUrl'] || 'login';
-            //         this.router.navigate([returnUrl]);
-            //     },
-            //     error: (err) => {
-            //       this.errorMessage = err.message;
-            //       console.log(err);
-            //       this.loading = false;
-            //     }
-            // });
-            const returnUrl = this.route.snapshot.queryParams['returnUrl'] || 'login';
-            this.router.navigate([returnUrl]);
-            this.loading = false;
+
+    try {
+      const response = await this.authenticationService.register(this.f.firstName.value, this.f.lastName.value, this.f.email.value, this.f.password.value, this.f.confirmPassword.value);
+      if(response.status == 200){
+        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || 'login';
+        this.router.navigate([returnUrl]);
+        this.loading = false;
+      }
+      else
+      {
+        const body = await response.json();
+        this.errorMessage = body.message;
+        var msg = "";
+        if(Object.keys(body.modelState).length != 0){
+          msg = ": "
+          Object.keys(body.modelState).forEach(function(key, index) {
+
+            for(var i = 0; i < body.modelState[key].errors.length; i ++){
+              msg += body.modelState[key].errors[i].errorMessage + ""
+            }
+            
+          });
+        }
+        this.errorMessage += msg;
+        this.loading = false;
+      }
+      
+    } 
+    catch (error) {
+      this.loading = false;
+      this.errorMessage = `Server error: ${error.message}`
+    }
   }
+
   login(){
     const returnUrl = this.route.snapshot.queryParams['returnUrl'] || 'login';
     this.router.navigate([returnUrl]);
